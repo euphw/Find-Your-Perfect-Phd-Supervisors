@@ -2,29 +2,51 @@ import React, { useState } from 'react';
 import Hero from './components/Hero';
 import SearchForm from './components/SearchForm';
 import SupervisorList from './components/SupervisorList';
-import { findSupervisors } from './services/geminiService';
-import { SearchCriteria, SearchResult } from './types';
+import { findSupervisors, findCoAuthors } from './services/geminiService';
+import { SearchCriteria, SearchResult, Supervisor } from './types';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentTopic, setCurrentTopic] = useState<string>('');
 
   const handleSearch = async (criteria: SearchCriteria) => {
     setIsLoading(true);
     setError(null);
     setSearchResult(null);
+    setCurrentTopic(criteria.topic);
 
     try {
-      const result = await findSupervisors(
-        criteria.topic,
-        criteria.region,
-        criteria.background
-      );
+      // Updated to pass the full criteria object
+      const result = await findSupervisors(criteria);
       setSearchResult(result);
     } catch (err) {
       console.error(err);
       setError("We encountered an issue while searching for supervisors. Please try again later or refine your topic.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFindNetwork = async (supervisor: Supervisor) => {
+    setIsLoading(true);
+    setError(null);
+    setSearchResult(null);
+    
+    // Scroll to top to ensure the user sees the loading state in the form button
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const result = await findCoAuthors(
+        supervisor.name,
+        supervisor.university,
+        currentTopic
+      );
+      setSearchResult(result);
+    } catch (err) {
+      console.error(err);
+      setError(`We encountered an issue while searching for network of ${supervisor.name}. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -46,7 +68,7 @@ function App() {
         </div>
       )}
 
-      <SupervisorList data={searchResult} />
+      <SupervisorList data={searchResult} onFindNetwork={handleFindNetwork} />
     </div>
   );
 }

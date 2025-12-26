@@ -8,21 +8,25 @@ interface SearchFormProps {
 
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
   const [topic, setTopic] = useState('');
-  const [region, setRegion] = useState('Global');
+  const [countries, setCountries] = useState('Global');
+  const [maxRank, setMaxRank] = useState('Any');
+  const [requireScholarship, setRequireScholarship] = useState(false);
   const [background, setBackground] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
-    onSearch({ topic, region, background });
+    onSearch({ topic, countries, maxRank, requireScholarship, background });
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto -mt-20 relative z-20 px-6">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 md:p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2 md:col-span-2">
+          <div className="grid md:grid-cols-12 gap-6">
+            
+            {/* Topic - Full Width */}
+            <div className="md:col-span-12 space-y-2">
               <label htmlFor="topic" className="block text-sm font-semibold text-slate-700">
                 Research Interest / Topic
               </label>
@@ -36,37 +40,68 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
               />
             </div>
             
-            <div className="space-y-2">
-              <label htmlFor="region" className="block text-sm font-semibold text-slate-700">
-                Preferred Region
+            {/* Countries */}
+            <div className="md:col-span-6 space-y-2">
+              <label htmlFor="countries" className="block text-sm font-semibold text-slate-700">
+                Target Countries (Comma separated)
+              </label>
+              <input
+                type="text"
+                id="countries"
+                value={countries}
+                onChange={(e) => setCountries(e.target.value)}
+                placeholder="E.g. USA, UK, Singapore, Germany"
+                className="w-full p-3 rounded-xl border border-slate-200 focus:border-academic-500 focus:ring-4 focus:ring-blue-50 transition-all outline-none text-slate-800"
+              />
+            </div>
+
+            {/* QS Rank Limit */}
+            <div className="md:col-span-3 space-y-2">
+              <label htmlFor="rank" className="block text-sm font-semibold text-slate-700">
+                University Rank (QS)
               </label>
               <select
-                id="region"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
+                id="rank"
+                value={maxRank}
+                onChange={(e) => setMaxRank(e.target.value)}
                 className="w-full p-3 rounded-xl border border-slate-200 focus:border-academic-500 focus:ring-4 focus:ring-blue-50 transition-all outline-none bg-white text-slate-800"
               >
-                <option value="Global">Global (Anywhere)</option>
-                <option value="North America">North America (USA, Canada)</option>
-                <option value="Europe">Europe (UK, EU, Switzerland)</option>
-                <option value="Asia">Asia (China, Japan, Singapore, etc.)</option>
-                <option value="Australia/NZ">Australia & New Zealand</option>
+                <option value="Any">Any Rank</option>
+                <option value="50">Top 50</option>
+                <option value="100">Top 100</option>
+                <option value="200">Top 200</option>
               </select>
             </div>
 
-            <div className="space-y-2">
+             {/* Background */}
+             <div className="md:col-span-3 space-y-2">
               <label htmlFor="background" className="block text-sm font-semibold text-slate-700">
-                Your Background (Optional)
+                Your Background
               </label>
               <input
                 type="text"
                 id="background"
                 value={background}
                 onChange={(e) => setBackground(e.target.value)}
-                placeholder="E.g., MSc in CS, 2 papers published"
+                placeholder="E.g., MSc CS, 3.8 GPA"
                 className="w-full p-3 rounded-xl border border-slate-200 focus:border-academic-500 focus:ring-4 focus:ring-blue-50 transition-all outline-none text-slate-800 placeholder:text-slate-400"
               />
             </div>
+            
+            {/* Scholarship Toggle */}
+             <div className="md:col-span-12 flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <input
+                    type="checkbox"
+                    id="scholarship"
+                    checked={requireScholarship}
+                    onChange={(e) => setRequireScholarship(e.target.checked)}
+                    className="w-5 h-5 text-academic-500 rounded focus:ring-academic-500 border-gray-300"
+                />
+                <label htmlFor="scholarship" className="text-sm text-slate-700 font-medium select-none cursor-pointer">
+                    Prioritize positions with explicit Scholarship / Funding available
+                </label>
+             </div>
+
           </div>
 
           <div className="pt-2">
@@ -95,7 +130,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, isLoading }) => {
               )}
             </button>
             <p className="text-center text-xs text-slate-400 mt-3">
-              Uses Gemini 3 Flash with Google Search Grounding for real-time results.
+              Uses Gemini 3 Flash to find global supervisors matching your criteria.
             </p>
           </div>
         </form>
