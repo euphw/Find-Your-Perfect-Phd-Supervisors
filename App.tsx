@@ -1,0 +1,54 @@
+import React, { useState } from 'react';
+import Hero from './components/Hero';
+import SearchForm from './components/SearchForm';
+import SupervisorList from './components/SupervisorList';
+import { findSupervisors } from './services/geminiService';
+import { SearchCriteria, SearchResult } from './types';
+
+function App() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearch = async (criteria: SearchCriteria) => {
+    setIsLoading(true);
+    setError(null);
+    setSearchResult(null);
+
+    try {
+      const result = await findSupervisors(
+        criteria.topic,
+        criteria.region,
+        criteria.background
+      );
+      setSearchResult(result);
+    } catch (err) {
+      console.error(err);
+      setError("We encountered an issue while searching for supervisors. Please try again later or refine your topic.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen pb-20 bg-slate-50 font-sans">
+      <Hero />
+      <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+      
+      {error && (
+        <div className="container mx-auto px-6 mt-12 mb-4">
+          <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 text-center flex items-center justify-center gap-2 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
+
+      <SupervisorList data={searchResult} />
+    </div>
+  );
+}
+
+export default App;
